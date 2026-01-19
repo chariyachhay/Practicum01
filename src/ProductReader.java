@@ -1,30 +1,44 @@
-import javax.swing.*;
-import java.nio.file.*;
-import java.io.*;
-import java.util.*;
+import javax.swing.JFileChooser;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ProductReader {
-    public static void main(String[] args) throws IOException {
-        System.out.println("=== Product Reader ===");
+    public static void main(String[] args) {
 
         JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File("src")); // start in src folder
         int result = chooser.showOpenDialog(null);
 
-        if(result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = chooser.getSelectedFile();
-            System.out.println("Selected file: " + selectedFile.getName());
+        if (result == JFileChooser.APPROVE_OPTION) {
+            Path file = chooser.getSelectedFile().toPath();
 
-            List<String> lines = Files.readAllLines(selectedFile.toPath());
+            // Table header
+            System.out.printf("%-8s %-15s %-25s %-8s%n",
+                    "ID#", "Name", "Description", "Cost");
+            System.out.println("======================================================");
 
-            System.out.printf("%-8s %-15s %-30s %-10s%n", "ID#", "Name", "Description", "Cost");
-            System.out.println("============================================================");
+            try {
+                BufferedReader reader = Files.newBufferedReader(file);
+                String line;
 
-            for(String line : lines) {
-                String[] parts = line.split(",\\s*");
-                System.out.printf("%-8s %-15s %-30s %-10s%n", parts[0], parts[1], parts[2], parts[3]);
+                while ((line = reader.readLine()) != null) {
+                    String[] fields = line.split(",");
+
+                    System.out.printf("%-8s %-15s %-25s $%-8s%n",
+                            fields[0],
+                            fields[1],
+                            fields[2],
+                            fields[3]);
+                }
+
+                reader.close();
             }
-        } else {
+            catch (IOException e) {
+                System.out.println("Error reading the file.");
+            }
+        }
+        else {
             System.out.println("No file selected.");
         }
     }

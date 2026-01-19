@@ -1,38 +1,51 @@
 import javax.swing.JFileChooser;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 public class PersonReader {
     public static void main(String[] args) {
-        ArrayList<String[]> persons = new ArrayList<>();
 
-        // Open file chooser window
+        // Use JFileChooser to let user pick the file
         JFileChooser chooser = new JFileChooser();
-        int result = chooser.showOpenDialog(null); // This will pop up a window
+        int result = chooser.showOpenDialog(null);
 
-        if(result == JFileChooser.APPROVE_OPTION){
-            Path filePath = chooser.getSelectedFile().toPath();
+        if (result == JFileChooser.APPROVE_OPTION) {
+            Path file = chooser.getSelectedFile().toPath();
+
+            // Print table header
+            System.out.printf("%-8s %-12s %-12s %-8s %-6s%n",
+                    "ID#", "Firstname", "Lastname", "Title", "YOB");
+            System.out.println("==============================================");
 
             try {
-                // Read each line of the file
-                for(String line : Files.readAllLines(filePath)){
+                BufferedReader reader = Files.newBufferedReader(file);
+                String line;
+
+                // Read each line from the file
+                while ((line = reader.readLine()) != null) {
+
+                    // Split CSV record
                     String[] fields = line.split(",");
-                    persons.add(fields);
+
+                    // Display formatted output
+                    System.out.printf("%-8s %-12s %-12s %-8s %-6s%n",
+                            fields[0],
+                            fields[1],
+                            fields[2],
+                            fields[3],
+                            fields[4]);
                 }
 
-                // Print table header
-                System.out.printf("%-8s %-10s %-10s %-6s %-6s%n", "ID#", "Firstname", "Lastname", "Title", "YOB");
-                System.out.println("==========================================");
-
-                // Print each record
-                for(String[] p : persons){
-                    System.out.printf("%-8s %-10s %-10s %-6s %-6s%n", p[0], p[1], p[2], p[3], p[4]);
-                }
-
-            } catch(Exception e){
-                System.out.println("Error reading file: " + e.getMessage());
+                reader.close();
             }
+            catch (IOException e) {
+                System.out.println("Error reading the file.");
+            }
+        }
+        else {
+            System.out.println("No file selected.");
         }
     }
 }
