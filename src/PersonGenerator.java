@@ -1,46 +1,100 @@
-import java.util.*;
-import java.nio.file.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class PersonGenerator {
-    public static void main(String[] args) {
-        Scanner pipe = new Scanner(System.in);  // Must pass this to SafeInput
-        List<String> persons = new ArrayList<>();
+    public static void main(String[] args)
+    {
+        // Person generator
+//        a.	ID (a String)
+//        b.	FirstName
+//        c.	LastName
+//        d.	Title (a string like Mr., Mrs., Ms., Dr., etc.)
+//        e.	YearOfBirth (an int)
 
-        System.out.println("=== Person Generator ===");
+        String ID = "";
+        String fName = "";
+        String lName = "";
+        String title = "";
+        int YOB = 0;
+        String csvRec = "";
+        boolean done = false;
 
-        boolean addMore = true;
-        while (addMore) {
-            // Use SafeInput to collect each field
-            String id = SafeInput.getNonZeroLenString(pipe, "Enter ID");
-            String firstName = SafeInput.getNonZeroLenString(pipe, "Enter First Name");
-            String lastName = SafeInput.getNonZeroLenString(pipe, "Enter Last Name");
-            String title = SafeInput.getNonZeroLenString(pipe, "Enter Title");
-            int yearOfBirth = SafeInput.getInt(pipe, "Enter Year of Birth");
+        Scanner in = new Scanner(System.in);
 
-            // Combine into CSV format
-            String record = id + "," + firstName + "," + lastName + "," + title + "," + yearOfBirth;
-            persons.add(record);
+        ArrayList<String> recs = new ArrayList<>();
 
-            // Ask if the user wants to add another person
-            addMore = SafeInput.getYNConfirm(pipe, "Add another person?");
-        }
+        // Loop and collect data for the Person records into the array list
+        do {
 
-        // Ask for file name to save
-        String fileName = SafeInput.getNonZeroLenString(pipe, "Enter file name to save (e.g., PersonTestData.txt)");
 
-        // Write the list to the file
-        Path file = Paths.get(fileName);
-        try (BufferedWriter writer = Files.newBufferedWriter(file)) {
-            for (String person : persons) {
-                writer.write(person);
-                writer.newLine();
+            // get the five data fields
+
+            ID = SafeInput.getNonZeroLenString(in, "Enter the ID");
+            fName = SafeInput.getNonZeroLenString(in, "Enter the first name");
+            lName = SafeInput.getNonZeroLenString(in, "Enter the last name");
+            title = SafeInput.getNonZeroLenString(in, "Enter the title");
+            YOB = SafeInput.getRangedInt(in, "Enter the year for the age calc: ", 1000, 9999);
+
+            // combine to get a single csv record
+            csvRec = ID + ", " + fName + ", " + lName + ", " + title + ", " + YOB;
+
+            // add to ArrayList
+            recs.add(csvRec);
+
+            // ask user for more records
+            done = SafeInput.getYNConfirm(in, "Are you done");
+        }while(!done);
+
+        // Add the code to save the data to disk
+
+        // uses a fixed known path:
+        //  Path file = Paths.get("c:\\My Documents\\data.txt");
+
+        // use the toolkit to get the current working directory of the IDE
+        // will create the file within the Netbeans project src folder
+        // (may need to adjust for other IDE)
+        // Not sure if the toolkit is thread safe...
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        Path file = Paths.get(workingDirectory.getPath() + "\\src\\Persondata.txt");
+
+        try
+        {
+            // Typical java pattern of inherited classes
+            // we wrap a BufferedWriter around a lower level BufferedOutputStream
+            OutputStream out =
+                    new BufferedOutputStream(Files.newOutputStream(file, CREATE));
+            BufferedWriter writer =
+                    new BufferedWriter(new OutputStreamWriter(out));
+
+            // Finally can write the file LOL!
+
+            for(String rec : recs)
+            {
+                writer.write(rec, 0, rec.length());  // stupid syntax for write rec
+                // 0 is where to start (1st char) the write
+                // rec. length() is how many chars to write (all)
+                writer.newLine();  // adds the new line
+
             }
-            System.out.println("File saved successfully: " + file.toAbsolutePath());
-        } catch (IOException e) {
-            System.out.println("Error writing file: " + e.getMessage());
+            writer.close(); // must close the file to seal it and flush buffer
+            System.out.println("Data file written!");
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
 
-        pipe.close();  // Close scanner when done
+        // Dumpt the array list for inspedction
+//        for(String rec : recs)
+//        {
+//            System.out.println(rec);
+//        }
+
     }
 }

@@ -1,32 +1,66 @@
-import java.util.*;
 import java.io.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class ProductWriter {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)
+    {
+        // Product Writer
+//        a. ID (String)
+//        b. Name (String)
+//        c. Description (String)
+//        d. Cost (double)
+
+        String ID = "";
+        String name = "";
+        String desc = "";
+        double cost = 0.0;
+        String csvRec = "";
+        boolean done = false;
+
         Scanner in = new Scanner(System.in);
-        List<String> products = new ArrayList<>();
-        boolean addMore = true;
+        ArrayList<String> recs = new ArrayList<>();
 
-        System.out.println("=== Product Writer ===");
+        // Loop and collect product data
+        do {
+            ID = SafeInput.getNonZeroLenString(in, "Enter Product ID");
+            name = SafeInput.getNonZeroLenString(in, "Enter Product Name");
+            desc = SafeInput.getNonZeroLenString(in, "Enter Product Description");
+            cost = SafeInput.getDouble(in, "Enter Product Cost");
 
-        while(addMore) {
-            String id = SafeInput.getNonZeroLenString(in, "Enter Product ID");
-            String name = SafeInput.getNonZeroLenString(in, "Enter Product Name");
-            String desc = SafeInput.getNonZeroLenString(in, "Enter Product Description");
-            double cost = SafeInput.getDouble(in, "Enter Product Cost");
+            csvRec = ID + ", " + name + ", " + desc + ", " + cost;
+            recs.add(csvRec);
 
-            String line = String.format("%s, %s, %s, %.1f", id, name, desc, cost);
-            products.add(line);
+            done = SafeInput.getYNConfirm(in, "Are you done");
+        } while(!done);
 
-            addMore = SafeInput.getYNConfirm(in, "Add another product?");
+        // Write file to src folder
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        Path file = Paths.get(workingDirectory.getPath() + "\\src\\ProductTestData.txt");
+
+        try
+        {
+            OutputStream out =
+                    new BufferedOutputStream(Files.newOutputStream(file, CREATE));
+            BufferedWriter writer =
+                    new BufferedWriter(new OutputStreamWriter(out));
+
+            for(String rec : recs)
+            {
+                writer.write(rec, 0, rec.length());
+                writer.newLine();
+            }
+            writer.close();
+            System.out.println("Product data file written!");
         }
-
-        String fileName = SafeInput.getNonZeroLenString(in, "Enter file name to save (e.g., ProductTestData.txt)");
-
-        Path filePath = Paths.get("src", fileName);
-        Files.write(filePath, products);
-
-        System.out.println("File saved successfully: " + filePath.toAbsolutePath());
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 }
